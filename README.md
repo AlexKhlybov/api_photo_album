@@ -18,7 +18,7 @@ Python 3.9.4, Django 3.1+, Django REST Framework, SQLite3, Simple JWT, Django Fi
 ## Установка
 Создайте виртуальное окружение:
 ```bash
-python -m venv venv
+python3 -m venv venv
 ```
 Активируйте его:
 ```bash
@@ -34,6 +34,9 @@ SECRET_KEY=любой_секретный_ключ_на_ваш_выбор
 ```
 Не забудьте применить все миграции:
 ```bash
+python manage.py makemigrations
+```
+```bash
 python manage.py migrate
 ```
 И запускайте сервер:
@@ -47,7 +50,23 @@ python manage.py runserver
 ```bash
 python manage.py loaddata dump.json 
 ```
-
+Чтобы открыть админку, запустите сервер и перейдите по ссылке:
+```http://127.0.0.1:8000/admin/
+```
+Для входа используйте:
+```
+login = admin
+password = admin
+```
+Данные для тестовых пользователей:
+```
+login = User_1
+password = user123456
+```
+```
+login = User_2
+password = user234567
+```
 ## Документация
 Чтобы открыть документацию, запустите сервер и перейдите по ссылке:
 ```http://127.0.0.1:8000/redoc/```
