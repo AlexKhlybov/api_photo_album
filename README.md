@@ -72,6 +72,4 @@ password = user234567
 Чтобы открыть документацию, запустите сервер и перейдите по ссылке:
 ```http://127.0.0.1:8000/redoc/```
 Покрытие тестами можно посмотреть в папке:
-```
-api_photo_album/htmlcov/index.html
-```
+```api_photo_album/htmlcov/index.html```
