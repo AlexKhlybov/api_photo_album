@@ -1,0 +1,33 @@
+# Unit test / coverage reports
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+*.cover
+*.py,cover
+
+
+db.sqlite3
+db.sqlite3-journal
+
+
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+
+.vscode/
+*.code-workspace
+
+# Local History for Visual Studio Code
+.history/
+
+.mypy_cache
+

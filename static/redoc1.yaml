@@ -1,0 +1,560 @@
+openapi: 3.0.2
+info:
+  title: Photo Album API
+  version: ''
+  description: |
+    запросы к API начинаются с `/api/v1/`
+
+    # Описание
+    Проект **Photo Album** позволяет создавать фотоальбомы.
+
+    # Алгоритм регистрации пользователей
+    1. Пользователь отправляет запрос с параметрами `username` и `password` на `/auth/users/`.
+    2. Пользователь отправляет запрос со своими параметрами `username` и `password` на `auth/jwt/create/`, в ответе на запрос ему приходит `token` (JWT-токен).
+    4. При желании пользователь отправляет PATCH-запрос на `/users/me/` и заполняет поля в своём профайле (описание полей — в документации).
+
+    # Авторизация
+    Каждый запрос к API требует авторизации. Для авторизации необходим специальный уникальный `token`.
+    Токен авторизации необходимо передавать в заголовке `Authorization` каждого запроса. Пример:
+    `Authorization: Token access_api_token`
+    Вместо `access_api_token` вставьте ваш API токен.
+
+servers:
+  - url: /api/v1/
+
+tags:
+  - name: SignUp
+  - name: AUTH
+  - name: Album
+    description: Альбомы
+  - name: Photo
+    description: Фотографии
+
+
+
+paths:
+  /auth/users/:
+    post:
+      tags:
+        - SignUp
+      description: Регистрация пользователя
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  description: Username пользователя
+                  type: string
+                password:
+                  description: Password пользователя
+                  type: number
+                  writeOnly: true
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignUp'
+          description: ''
+        400:
+          description: Ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /auth/jwt/create/:
+    post:
+      tags:
+        - AUTH
+      description: Получить JWT-токен
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  description: Username пользователя
+                  type: string
+                password:
+                  description: Password пользователя
+                  type: number
+                  writeOnly: true
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JWTToken'
+          description: ''
+        400:
+          description: Ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+  /auth/jwt/refresh/:
+    post:
+      tags:
+        - AUTH
+      description: Обновить JWT-токен
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - refresh
+              properties:
+                refresh:
+                  description: refresh токен
+                  type: number
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                properties:
+                  refresh:
+                    description: refresh токен
+                    type: number
+        400:
+          description: Ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+  /albums/:
+    get:
+      tags:
+        - Album
+      summary: Получить список альбомов
+      description: 'Права доступа: **Аутентифицированные пользователи.**'
+      parameters:
+      - name: ordering
+        in: query
+        description: сортирует по created или count_photo (NOT WORKING!!!!)
+        schema:
+          type: string
+      responses:
+        200:
+          description: Список публикаций
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Album'
+    post:
+      tags:
+        - Album
+      summary: Создать новый альбом
+      description: 'Права доступа: **Аутентифицированные пользователи.**'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - name
+              properties:
+                name:
+                  description: Название альбома
+                  type: string
+           
+      responses:
+        200:
+          description: 'Новый альбом'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Album'
+  /albums/{album_id}/:
+    get:
+      tags:
+        - Album
+      summary: Получить альбом по id
+      description: 'Права доступа: **Аутентифицированные пользователи.**'
+      parameters:
+      - name: album_id
+        in: path
+        required: true
+        description: ID альбома
+        schema:
+          type: number
+      responses:
+        200:
+          description: Альбом
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Album'
+        400:
+          description: Ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+    put:
+      tags:
+        - Album
+      summary: Обновить альбом по id
+      description: 'Права доступа: **Аутентифицированные пользователи.**'
+      parameters:
+      - name: album_id
+        in: path
+        required: true
+        description: ID альбома
+        schema:
+          type: number
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - name
+              properties:
+                name:
+                  description: Название альбома
+                  type: string
+
+      responses:
+        200:
+          description: Альбом
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Album'
+        400:
+          description: Ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+    patch:
+      tags:
+        - Album
+      summary: Частично обновить альбом по id
+      description: 'Права доступа: **Аутентифицированные пользователи.**'
+      parameters:
+      - name: album_id
+        in: path
+        required: true
+        description: ID альбома
+        schema:
+          type: number
+      requestBody:
+        content:
+          application/json:
+            schema:
+              schema:
+              required:
+                - name
+              properties:
+                name:
+                  description: Название альбома
+                  type: string
+      responses:
+        200:
+          description: Альбом
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Album'
+        400:
+          description: Ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+    delete:
+      tags:
+        - Album
+      summary: Удалить альбом по id
+      description: 'Права доступа: **Аутентифицированные пользователи.**'
+      parameters:
+      - name: album_id
+        in: path
+        required: true
+        description: ID альбома
+        schema:
+          type: number
+      responses:
+        204:
+          description: ''
+
+
+  /albums/{album_id}/photo/:
+    get:
+      tags:
+        - Album
+      summary: Получить фотографии альбома
+      description: 'Права доступа: **Аутентифицированные пользователи.**'
+      parameters:
+      - name: album_id
+        in: path
+        required: true
+        description: ID альбома
+        schema:
+          type: number
+      schema:
+          type: string
+      responses:
+        200:
+          description: Список фотографий
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Photo'
+        400:
+          description: Ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+    post:
+      tags:
+        - Album
+      summary: Загрузить фотографию в альбом
+      description: 'Права доступа: **Аутентифицированные пользователи.**'
+      parameters:
+      - name: album_id
+        in: path
+        required: true
+        description: ID альбома
+        schema:
+          type: number
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - name
+                - image
+                - tag
+              properties:
+                name:
+                  description: Название фотографии
+                  type: string
+                image:
+                  description: Фотография
+                  type: file
+                tag:
+                  description: Тэг
+                  type: array
+      responses:
+        200:
+          description: Новая фотография
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Photo'
+        400:
+          description: Ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+  /albums/{album_id}/photo/{photo_id}:
+    patch:
+      tags:
+        - Album
+      summary: Частично обновить фотографию в альбоме
+      description: 'Права доступа: **Аутентифицированные пользователи.**'
+      parameters:
+      - name: album_id
+        in: path
+        required: true
+        description: ID альбома
+        schema:
+          type: number
+      - name: photo_id
+        in: path
+        required: true
+        description: ID фотографии
+        schema:
+          type: number
+      requestBody:
+        content:
+          application/json:
+            schema:
+              schema:
+              properties:
+                name:
+                  description: Название альбома
+                  type: string
+                tag:
+                  description: Тэг
+                  type: array
+      responses:
+        200:
+          description: Фотография
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Album'
+    delete:
+      tags:
+        - Album
+      summary: Удалить фотографию из альбома
+      description: 'Права доступа: **Аутентифицированные пользователи.**'
+      parameters:
+      - name: album_id
+        in: path
+        required: true
+        description: ID альбома
+        schema:
+          type: number
+      - name: photo_id
+        in: path
+        required: true
+        description: ID фотографии
+        schema:
+          type: number
+      responses:
+        204:
+          description: ''
+  /photo/:
+    get:
+      tags:
+        - Photo
+      summary: Получить список фотографий
+      description: 'Права доступа: **Аутентифицированные пользователи.**'
+      parameters:
+      - name: ordering
+        in: query
+        description: сортирует по created или album
+        schema:
+          type: string
+      - name: filter
+        in: query
+        description: фильтрует по album или tag
+        schema:
+          type: string
+      responses:
+        200:
+          description: Список публикаций
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Photo'
+  /photo/{photo_id}:
+    get:
+      tags:
+        - Photo
+      summary: Получить фотографию по id
+      description: 'Права доступа: **Аутентифицированные пользователи.**'
+      parameters:
+      - name: photo_id
+        in: path
+        required: true
+        description: ID фотографии
+        schema:
+          type: number
+      responses:
+        200:
+          description: Фотография
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Photo'
+
+
+components:
+  schemas:
+    SignUp:
+      title: Регистрация
+      type: object
+      properties:
+        id:
+          type: integer
+          title: ID пользователя
+        username:
+          type: string
+          title: username пользователя
+    JWTToken:
+      title: JWT Токен
+      type: object
+      properties:
+        access:
+          type: string
+          title: access токен
+        refresh:
+          type: string
+          title: refresh токен
+    Album:
+      title: Альбом
+      type: object
+      description: Детальная информация альбома
+      properties:
+        id:
+          type: integer
+          title: ID альбома
+          readOnly: true
+        name:
+          type: string
+          title: Название альбома
+        author:
+          type: string
+          title: Автор альбома
+          readOnly: true
+        photo_count:
+          type: integer
+          title: Количество фотографий
+          readOnly: true
+        created:
+          type: string
+          format: date-time
+          title: Дата создания
+          readOnly: true
+    ValidationError:
+      title: Ошибка валидации
+      type: object
+      properties:
+        field_name:
+          type: array
+          items:
+            type: string
+    Photo:
+      title: Фотографии
+      type: object
+      description: Детальная информация фотографии
+      properties:
+        id:
+          type: integer
+          title: ID фотографии
+          readOnly: true
+        album:
+          type: string
+          title: Название альбома
+        name:
+          type: string
+          title: Название фотографии
+        image:
+          type: string
+          format: url
+          title: фотография
+          readOnly: true
+        created:
+          type: string
+          format: date-time
+          title: Дата создания
+          readOnly: true
+        tag:
+          type: object
+          format: string
+          title: Тэги фотографии

@@ -1,0 +1,12 @@
+django
+wheel
+pillow
+djangorestframework
+djangorestframework-simplejwt
+djoser
+django-filter
+django-taggit
+django-taggit-serializer
+django-imagekit
+python-dotenv
+coverage
